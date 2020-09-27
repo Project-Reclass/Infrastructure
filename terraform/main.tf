@@ -9,7 +9,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-2"
+  region = "us-west-1"
 }
 
 module "vpc" {
@@ -28,12 +28,10 @@ module "vpc" {
   tags = var.vpc_tags
 }
 
-data "terraform_remote_state" "projectreclass-terraform" {
-  backend = "s3" 
-  config = {
-    bucket = "projectreclass-terraform"
+terraform {
+  backend "s3" {
+    bucket = "projectreclass-terraform-california"
     key    = "terraform.tfstate"
-    region = "us-east-2"
+    region = "us-west-1"
   }
 }
-
