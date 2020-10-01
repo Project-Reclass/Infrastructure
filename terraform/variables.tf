@@ -1,5 +1,11 @@
 # Input variable defintions
 
+variable "vpc_id" {
+  description = "VPC ID"
+  type        = string
+  default     = "vpc-04fc2565f55def422"
+}
+
 variable "vpc_name" {
   description = "Name of VPC"
   type        = string

@@ -8,6 +8,19 @@ terraform {
   }
 }
 
+data "terraform_remote_state" "projectreclass-terraform-california" {
+  backend = "s3" 
+  config = {
+    bucket = "projectreclass-terraform-california"
+    key    = "terraform.tfstate"
+    region = "us-west-1"
+  }
+}
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 provider "aws" {
   region = "us-west-1"
 }
@@ -18,8 +31,8 @@ module "vpc" {
 
   name = var.vpc_name
   cidr = var.vpc_cidr
-
-  azs             = var.vpc_azs
+  
+  azs             = data.aws_availability_zones.available.names 
   private_subnets = var.vpc_private_subnets
   public_subnets  = var.vpc_public_subnets
 
@@ -406,4 +419,3 @@ resource "aws_alb_listener" "toynet-django-alb-listener" {
     target_group_arn = aws_alb_target_group.toynet_django_target_group.arn
   }
 }
-
