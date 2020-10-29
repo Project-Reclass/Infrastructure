@@ -8,15 +8,6 @@ terraform {
   }
 }
 
-data "terraform_remote_state" "projectreclass-terraform-virgnia" {
-  backend = "s3" 
-  config = {
-    bucket = "projectreclass-terraform-virgnia"
-    key    = "terraform.tfstate"
-    region = "us-east-1"
-  }
-}
-
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -31,8 +22,8 @@ module "vpc" {
 
   name = var.vpc_name
   cidr = var.vpc_cidr
-  
-  azs             = data.aws_availability_zones.available.names 
+
+  azs             = data.aws_availability_zones.available.names
   private_subnets = var.vpc_private_subnets
   public_subnets  = var.vpc_public_subnets
 
@@ -41,14 +32,56 @@ module "vpc" {
   tags = var.vpc_tags
 }
 
-terraform {
-  backend "s3" {
-    bucket = "projectreclass-terraform-virgnia"
-    key    = "terraform.tfstate"
-    region = "us-east-1"
+resource "aws_s3_bucket" "tf_state_test" {
+  # Unique bucket name 
+  bucket = "projectreclass-test-bucket"
+
+  # Prevent accidental deletion of tf state
+  lifecycle {
+    prevent_destroy = false 
+  }
+
+  # Enable Versioning to track history 
+  versioning {
+    enabled = true
+  }
+
+  # Enable Encryption
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
   }
 }
 
+resource "aws_dynamodb_table" "tf_locks_test" {
+  name         = "db_for_tf_locks_test"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
+
+terraform {
+  backend "s3" {
+    # S3 Bucket Details
+    # Must match bucket name
+    bucket = "projectreclass-test-bucket"
+    # Name to assign to the state file
+    key = "test/tf.state"
+    # region the bucket is in
+    region = "us-east-1"
+
+    # DynamoDB Details
+    dynamodb_table = "db_for_tf_locks_test"
+    encrypt        = true
+  }
+}
 ############################################ Jumpbox ############################################
 
 resource "aws_security_group" "jumpbox_sg" {
@@ -162,7 +195,7 @@ resource "aws_security_group" "toynet_react_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on        = [aws_instance.jumpbox_instance]
+  depends_on = [aws_instance.jumpbox_instance]
 }
 
 data "template_file" "toynet_react_task_definition_file" {
@@ -313,7 +346,7 @@ resource "aws_security_group" "toynet_django_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on        = [aws_instance.jumpbox_instance]
+  depends_on = [aws_instance.jumpbox_instance]
 }
 
 data "template_file" "toynet_django_task_definition_file" {
