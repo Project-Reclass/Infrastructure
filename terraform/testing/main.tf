@@ -8,6 +8,10 @@ terraform {
   }
 }
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 provider "aws" {
   region = "us-east-1"
 }
