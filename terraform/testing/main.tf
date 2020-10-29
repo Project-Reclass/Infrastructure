@@ -8,10 +8,6 @@ terraform {
   }
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 provider "aws" {
   region = "us-east-1"
 }
@@ -23,7 +19,7 @@ module "vpc" {
   name = var.vpc_name
   cidr = var.vpc_cidr
 
-  azs             = data.aws_availability_zones.available.names
+  azs             = var.vpc_azs
   private_subnets = var.vpc_private_subnets
   public_subnets  = var.vpc_public_subnets
 
