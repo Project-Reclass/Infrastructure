@@ -21,7 +21,7 @@ variable "vpc_cidr" {
 variable "vpc_azs" {
   description = "Availability zones for VPC"
   type        = list
-  default     = ["us-west-1a", "us-west-1b"]
+  default     = ["us-east-1a", "us-east-1b"]
 }
 
 variable "vpc_private_subnets" {
@@ -38,14 +38,14 @@ variable "vpc_public_subnets" {
 
 variable "vpc_enable_nat_gateway" {
   description = "Enable NAT gateway for VPC"
-  type    = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "vpc_tags" {
   description = "Tags to apply to resources created by VPC module"
   type        = map(string)
-  default     = {
+  default = {
     Terraform   = "true"
     Environment = "dev"
   }

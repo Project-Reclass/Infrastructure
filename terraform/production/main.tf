@@ -8,19 +8,6 @@ terraform {
   }
 }
 
-data "terraform_remote_state" "projectreclass-terraform-california" {
-  backend = "s3" 
-  config = {
-    bucket = "projectreclass-terraform-california"
-    key    = "terraform.tfstate"
-    region = "us-west-1"
-  }
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 provider "aws" {
   region = "us-west-1"
 }
@@ -31,8 +18,8 @@ module "vpc" {
 
   name = var.vpc_name
   cidr = var.vpc_cidr
-  
-  azs             = data.aws_availability_zones.available.names 
+
+  azs             = var.vpc_azs
   private_subnets = var.vpc_private_subnets
   public_subnets  = var.vpc_public_subnets
 
@@ -41,11 +28,43 @@ module "vpc" {
   tags = var.vpc_tags
 }
 
+resource "aws_s3_bucket" "tf_state_test" {
+  # Unique bucket name 
+  bucket = "projectreclass-test-bucket"
+
+  # Prevent accidental deletion of tf state
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  # Enable Versioning to track history 
+  versioning {
+    enabled = true
+  }
+
+  # Enable Encryption
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
 terraform {
   backend "s3" {
-    bucket = "projectreclass-terraform-california"
-    key    = "terraform.tfstate"
-    region = "us-west-1"
+    # Must match bucket name
+    bucket = "projectreclass-test-bucket"
+    # Name to assign to the state file
+    key = "test/tf.state"
+    # region the bucket is in
+    region = "us-east-1"
+
+    # DynamoDB Details
+    dynamodb_table = "db_for_tf_locks_test"
+    encrypt        = true
+    depends_on     = [aws_dynamodb_table.tf_locks_test]
   }
 }
 
@@ -162,7 +181,7 @@ resource "aws_security_group" "toynet_react_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on        = [aws_instance.jumpbox_instance]
+  depends_on = [aws_instance.jumpbox_instance]
 }
 
 data "template_file" "toynet_react_task_definition_file" {
@@ -313,7 +332,7 @@ resource "aws_security_group" "toynet_django_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on        = [aws_instance.jumpbox_instance]
+  depends_on = [aws_instance.jumpbox_instance]
 }
 
 data "template_file" "toynet_django_task_definition_file" {
@@ -426,4 +445,5 @@ resource "aws_alb_listener" "toynet-django-alb-listener" {
     target_group_arn = aws_alb_target_group.toynet_django_target_group.arn
   }
 }
+
 
