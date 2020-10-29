@@ -34,7 +34,7 @@ resource "aws_s3_bucket" "tf_state_test" {
 
   # Prevent accidental deletion of tf state
   lifecycle {
-    prevent_destroy = false 
+    prevent_destroy = true
   }
 
   # Enable Versioning to track history 
@@ -52,17 +52,6 @@ resource "aws_s3_bucket" "tf_state_test" {
   }
 }
 
-resource "aws_dynamodb_table" "tf_locks_test" {
-  name         = "db_for_tf_locks_test"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
-
 terraform {
   backend "s3" {
     # S3 Bucket Details
@@ -76,8 +65,10 @@ terraform {
     # DynamoDB Details
     dynamodb_table = "db_for_tf_locks_test"
     encrypt        = true
+    depends_on     = [aws_dynamodb_table.tf_locks_test]
   }
 }
+
 ############################################ Jumpbox ############################################
 
 resource "aws_security_group" "jumpbox_sg" {
@@ -455,4 +446,5 @@ resource "aws_alb_listener" "toynet-django-alb-listener" {
     target_group_arn = aws_alb_target_group.toynet_django_target_group.arn
   }
 }
+
 
