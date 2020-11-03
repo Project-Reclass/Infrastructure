@@ -9,7 +9,7 @@ variable "vpc_id" {
 variable "vpc_name" {
   description = "Name of VPC"
   type        = string
-  default     = "hackday-vpc"
+  default     = "test-vpc"
 }
 
 variable "vpc_cidr" {

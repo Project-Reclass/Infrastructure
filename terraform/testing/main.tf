@@ -1,4 +1,4 @@
-# Terraform configuration
+ # Terraform configuration
 
 terraform {
   required_providers {
@@ -14,7 +14,6 @@ provider "aws" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "2.21.0"
 
   name = var.vpc_name
   cidr = var.vpc_cidr
@@ -42,14 +41,13 @@ terraform {
     # DynamoDB Details
     dynamodb_table = "db_for_tf_locks_test"
     encrypt        = true
-    depends_on     = [aws_dynamodb_table.tf_locks_test]
   }
 }
 
 ############################################ Jumpbox ############################################
 
-resource "aws_security_group" "jumpbox_sg" {
-  name        = "jumpbox-sg"
+resource "aws_security_group" "jumpbox_sg-test" {
+  name        = "jumpbox-sg-test"
   description = "allow ssh"
   vpc_id      = module.vpc.vpc_id
 
@@ -80,7 +78,7 @@ resource "aws_instance" "jumpbox_instance" {
   instance_type        = "t2.nano"
   iam_instance_profile = aws_iam_instance_profile.ecs_agent.name # to try to pull docker
   subnet_id            = module.vpc.public_subnets[0]
-  security_groups      = [aws_security_group.jumpbox_sg.id]
+  security_groups      = [aws_security_group.jumpbox_sg-test.id]
   key_name             = "Key"
   user_data            = "#!/bin/bash\nsudo amazon-linux-extras install docker; sudo systemctl start docker;"
 
@@ -94,7 +92,7 @@ resource "aws_instance" "jumpbox_instance" {
 ############################################ Container Policies & Roles ############################################
 
 resource "aws_iam_role" "ecs_agent" {
-  name               = "ecs-agent"
+  name               = "ecs-agent-test"
   assume_role_policy = data.aws_iam_policy_document.ecs_agent_policydoc.json
 }
 
@@ -115,7 +113,7 @@ resource "aws_iam_role_policy_attachment" "ecs_agent" {
 }
 
 resource "aws_iam_instance_profile" "ecs_agent" {
-  name = "ecs-agent"
+  name = "ecs-agent-test"
   role = aws_iam_role.ecs_agent.name
 }
 
@@ -133,8 +131,8 @@ data "aws_iam_role" "ecs_service_role" {
 
 ########## ToyNet React: Elastic Container Service Cluster ###########################################
 
-resource "aws_security_group" "toynet_react_sg" {
-  name        = "toynet-react-sg"
+resource "aws_security_group" "toynet_react_sg-test" {
+  name        = "toynet-react-sg-test"
   description = "allow ssh and http traffic"
   vpc_id      = module.vpc.vpc_id
 
@@ -204,7 +202,7 @@ resource "aws_instance" "toynet_react_container_instance" {
   instance_type        = "t2.medium"
   iam_instance_profile = aws_iam_instance_profile.ecs_agent.name
   subnet_id            = module.vpc.public_subnets[0]
-  security_groups      = [aws_security_group.toynet_react_sg.id]
+  security_groups      = [aws_security_group.toynet_react_sg-test.id]
   key_name             = "Key"
   user_data            = "#!/bin/bash\necho ECS_CLUSTER='toynet-react-cluster' >> /etc/ecs/ecs.config"
 
@@ -217,8 +215,8 @@ resource "aws_instance" "toynet_react_container_instance" {
 
 ########## ToyNet React: Application Load Balancer ############################################
 
-resource "aws_security_group" "toynet_react_lb_sg" {
-  name        = "toynet-react-lb-sg"
+resource "aws_security_group" "toynet_react_lb_sg-test" {
+  name        = "toynet-react-lb-sg-test"
   description = "allow HTTP and HTTPS"
   vpc_id      = module.vpc.vpc_id
 
@@ -249,7 +247,7 @@ resource "aws_lb" "toynet_react_alb" {
   name               = "toynet-react-alb"
   load_balancer_type = "application"
   internal           = false
-  security_groups    = [aws_security_group.toynet_react_lb_sg.id]
+  security_groups    = [aws_security_group.toynet_react_lb_sg-test.id]
   subnets            = [module.vpc.public_subnets[0], module.vpc.public_subnets[1]]
 }
 
@@ -284,8 +282,8 @@ resource "aws_alb_listener" "toynet_react_alb_httplistener" {
 
 ########## ToyNet Django: Elastic Container Service Cluster ##########################################
 
-resource "aws_security_group" "toynet_django_sg" {
-  name        = "toynet-django-sg"
+resource "aws_security_group" "toynet_django_sg-test" {
+  name        = "toynet-django-sg-test"
   description = "allow ssh and http traffic"
   vpc_id      = module.vpc.vpc_id
 
@@ -351,7 +349,7 @@ resource "aws_instance" "toynet_django_container_instance" {
   instance_type        = "t2.medium"
   iam_instance_profile = aws_iam_instance_profile.ecs_agent.name
   subnet_id            = module.vpc.private_subnets[0]
-  security_groups      = [aws_security_group.toynet_django_sg.id]
+  security_groups      = [aws_security_group.toynet_django_sg-test.id]
   key_name             = "Key"
   user_data            = "#!/bin/bash\necho ECS_CLUSTER='toynet-django-cluster' >> /etc/ecs/ecs.config"
 
@@ -364,8 +362,8 @@ resource "aws_instance" "toynet_django_container_instance" {
 
 ########## ToyNet Django: Application Load Balancer ###########################################
 
-resource "aws_security_group" "toynet_django_lb_sg" {
-  name        = "toynet-django-lb-sg"
+resource "aws_security_group" "toynet_django_lb_sg-test" {
+  name        = "toynet-django-lb-sg-test"
   description = "allow port 8000"
   vpc_id      = module.vpc.vpc_id
 
@@ -389,7 +387,7 @@ resource "aws_lb" "toynet_django_alb" {
   name               = "toynet-django-alb"
   load_balancer_type = "application"
   internal           = true
-  security_groups    = [aws_security_group.toynet_django_lb_sg.id]
+  security_groups    = [aws_security_group.toynet_django_lb_sg-test.id]
   subnets            = [module.vpc.private_subnets[0], module.vpc.private_subnets[1]]
 }
 
