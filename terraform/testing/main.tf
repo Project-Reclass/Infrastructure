@@ -28,29 +28,6 @@ module "vpc" {
   tags = var.vpc_tags
 }
 
-resource "aws_s3_bucket" "tf_state_test" {
-  # Unique bucket name 
-  bucket = "projectreclass-test-bucket"
-
-  # Prevent accidental deletion of tf state
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  # Enable Versioning to track history 
-  versioning {
-    enabled = true
-  }
-
-  # Enable Encryption
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-}
 
 terraform {
   backend "s3" {
