@@ -79,7 +79,7 @@ resource "aws_instance" "jumpbox_instance" {
   iam_instance_profile = aws_iam_instance_profile.ecs_agent.name # to try to pull docker
   subnet_id            = module.vpc.public_subnets[0]
   security_groups      = [aws_security_group.jumpbox_sg-test.id]
-  key_name             = "Key"
+  key_name             = "test-key-2020"
   user_data            = "#!/bin/bash\nsudo amazon-linux-extras install docker; sudo systemctl start docker;"
 
   associate_public_ip_address = true
@@ -203,7 +203,7 @@ resource "aws_instance" "toynet_react_container_instance" {
   iam_instance_profile = aws_iam_instance_profile.ecs_agent.name
   subnet_id            = module.vpc.public_subnets[0]
   security_groups      = [aws_security_group.toynet_react_sg-test.id]
-  key_name             = "Key"
+  key_name             = "test-key-2020"
   user_data            = "#!/bin/bash\necho ECS_CLUSTER='toynet-react-cluster' >> /etc/ecs/ecs.config"
 
   associate_public_ip_address = true
@@ -350,7 +350,7 @@ resource "aws_instance" "toynet_django_container_instance" {
   iam_instance_profile = aws_iam_instance_profile.ecs_agent.name
   subnet_id            = module.vpc.private_subnets[0]
   security_groups      = [aws_security_group.toynet_django_sg-test.id]
-  key_name             = "Key"
+  key_name             = "test-key-2020"
   user_data            = "#!/bin/bash\necho ECS_CLUSTER='toynet-django-cluster' >> /etc/ecs/ecs.config"
 
   associate_public_ip_address = false
@@ -422,4 +422,35 @@ resource "aws_alb_listener" "toynet-django-alb-listener" {
   }
 }
 
+resource "aws_route53_zone" "primary" {
+  name = "projectreclass.org"
+}
 
+resource "aws_route53_zone" "main" {
+  name = "projectreclass.org"
+}
+
+resource "aws_route53_record" "django-alb-test" {
+  zone_id = aws_route53_zone.primary.zone_id 
+  name    = "django.projectreclass.org"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.toynet_django_alb.dns_name
+    zone_id                = aws_lb.toynet_django_alb.zone_id
+    evaluate_target_health = true
+  }
+}
+
+
+resource "aws_route53_record" "react-alb-test" {
+  zone_id = aws_route53_zone.primary.zone_id 
+  name    = "test-toynet.projectreclass.org"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.toynet_react_alb.dns_name
+    zone_id                = aws_lb.toynet_react_alb.zone_id
+    evaluate_target_health = true
+  }
+}
