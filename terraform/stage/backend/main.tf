@@ -9,12 +9,12 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-2"
 }
 
-resource "aws_s3_bucket" "tf_state_test" {
+resource "aws_s3_bucket" "tf_state_stage" {
   # Unique bucket name 
-  bucket = "projectreclass-test-bucket"
+  bucket = "projectreclass-stage-bucket"
 
   # Prevent accidental deletion of tf state
   lifecycle {
@@ -36,8 +36,8 @@ resource "aws_s3_bucket" "tf_state_test" {
   }
 }
 
-resource "aws_dynamodb_table" "db_for_tf_locks_test" {
-  name           = "db_for_tf_locks_test"
+resource "aws_dynamodb_table" "db_for_tf_locks_stage" {
+  name           = "db_for_tf_locks_stage"
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "LockID"
