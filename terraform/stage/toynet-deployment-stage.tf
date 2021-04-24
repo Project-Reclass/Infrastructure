@@ -4,6 +4,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
+      version = "3.37.0"
     }
   }
 }
@@ -199,7 +200,7 @@ resource "aws_ecs_service" "toynet_react_ecs_service" {
 
 resource "aws_instance" "toynet_react_container_instance" {
   ami                  = "ami-0db98e57137013b2d" # Amazon ECS Optimized
-  instance_type        = "t2.medium"
+  instance_type        = "t2.micro"
   iam_instance_profile = "ecs-agent-instance-profile-stage" 
   subnet_id            = module.vpc.public_subnets[0]
   security_groups      = [aws_security_group.toynet_react_sg-stage.id]
@@ -346,7 +347,7 @@ resource "aws_ecs_service" "toynet_django_ecs_service" {
 
 resource "aws_instance" "toynet_django_container_instance" {
   ami                  = "ami-0db98e57137013b2d" # Amazon ECS Optimized
-  instance_type        = "t2.medium"
+  instance_type        = "t2.micro"
   iam_instance_profile = "ecs-agent-instance-profile-stage" 
   subnet_id            = module.vpc.private_subnets[0]
   security_groups      = [aws_security_group.toynet_django_sg-stage.id]

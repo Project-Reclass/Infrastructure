@@ -4,6 +4,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
+		version = "3.37.0"
     }
   }
 }
@@ -15,11 +16,10 @@ provider "aws" {
 resource "aws_s3_bucket" "tf_state_stage" {
   # Unique bucket name 
   bucket = "projectreclass-stage-bucket"
-
   # Prevent accidental deletion of tf state
   lifecycle {
-    prevent_destroy = true
-  }
+	prevent_destroy = false  
+}
 
   # Enable Versioning to track history 
   versioning {
