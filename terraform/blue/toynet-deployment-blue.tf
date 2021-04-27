@@ -17,14 +17,17 @@ data "terraform_remote_state" "projectreclass-terraform-prod-ohio" {
   }
 }
 
+# Specify AZ 
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
+# Specify Provider
 provider "aws" {
   region = "us-east-2"
 }
 
+# Create VPC that all resources will utilize
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "2.21.0"
@@ -40,13 +43,24 @@ module "vpc" {
 
   tags = var.vpc_tags
 }
-
+# Refer to state stored in S3 bucket for the given region 
 terraform {
   backend "s3" {
     bucket = "projectreclass-terraform-prod-ohio"
     key    = "terraform.tfstate"
     region = "us-east-2"
   }
+}
+
+# Create ECR for auto-deployment
+
+resource "aws_ecr_repository" "toynet-django-repo" {
+	name                 = "toynet-django-repo"
+	image_tag_mutability = MUTABLE
+
+	image_scanning_configuration {
+		scan_on_push = true
+	}
 }
 
 ############################################ Jumpbox ############################################
